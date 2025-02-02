@@ -15,20 +15,21 @@ public static class GamesEndpoints
         new (4, "The Witcher 3", "RPG", 29.99m, new DateOnly(2015, 5, 19))
     ];
 
-    public static WebApplication MapGamesEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapGamesEndpoints(this WebApplication app)
     {
+        var group = app.MapGroup("games");
         // GET /games
-        app.MapGet("games", ()=> games);
+        group.MapGet("", ()=> games);
 
         // GET by ID /games/id
-        app.MapGet("games/{id}",(int id) =>{ 
+        group.MapGet("/{id}",(int id) =>{ 
             GameDto? game = games.Find(game => game.Id == id);
                 return game is null ? Results.NotFound() : Results.Ok(game);
             })
             .WithName(GetGameEndpointName);
 
         // POST /games
-        app.MapPost("games", (CreateDto newGame)=>{
+        group.MapPost("/", (CreateDto newGame)=>{
             GameDto game = new(games.Count +1 , newGame.Name, newGame.Genre,  newGame.Price, newGame.ReleaseDate);
             games.Add(game);
             
@@ -36,7 +37,7 @@ public static class GamesEndpoints
         });
 
         // PUT /games
-        app.MapPut("games/{id}", (int id, UpdateGameDto updatedGame)=>{
+        group.MapPut("/{id}", (int id, UpdateGameDto updatedGame)=>{
             var index = games.FindIndex(game=> game.Id == id);
 
             if(index ==-1){
@@ -48,12 +49,12 @@ public static class GamesEndpoints
         });
 
         // DELETE /games/1
-        app.MapDelete("games/{id}", (int id)=>{
+        group.MapDelete("/{id}", (int id)=>{
             games.RemoveAll(game => game.Id == id);
             return Results.NoContent();
         });
 
-        return app;
+        return group;
 
     }
 
