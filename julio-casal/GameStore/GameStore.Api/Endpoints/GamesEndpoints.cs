@@ -11,7 +11,7 @@ public static class GamesEndpoints
     const string GetGameEndpointName = "GetGames";
 
     // Its readonly because we are never going to create the entire List from scratch
-    private static readonly List<GameDto> games = [
+    private static readonly List<GameSummaryDto> games = [
         new (1, "Elden Ring", "RPG", 59.99m, new DateOnly(2022, 2, 25)),
         new (2, "God of War", "Action", 49.99m, new DateOnly(2018, 4, 20)),
         new (3, "Cyberpunk 2077", "Action RPG", 39.99m, new DateOnly(2020, 12, 10)),
@@ -26,18 +26,17 @@ public static class GamesEndpoints
         group.MapGet("", ()=> games);
 
         // GET by ID /games/id
-        group.MapGet("/{id}",(int id) =>{ 
-            GameDto? game = games.Find(game => game.Id == id);
-                return game is null ? Results.NotFound() : Results.Ok(game);
+        group.MapGet("/{id}",(int id,  GameStoreContext dbContext) =>{ 
+            Game? game = dbContext.Games.Find(id);
+                return game is null ? Results.NotFound() : Results.Ok(game.ToGameDetailsDto());
             })
             .WithName(GetGameEndpointName);
         // POST /games
         group.MapPost("/", (CreateDto newGame, GameStoreContext dbContext)=>{
             Game game = newGame.ToEntity();
-            game.Genre = dbContext.Genres.Find(newGame.GenreId);
             dbContext.Games.Add(game);
             dbContext.SaveChanges();
-            return Results.CreatedAtRoute(GetGameEndpointName, new {id= game.Id}, game.ToDto());
+            return Results.CreatedAtRoute(GetGameEndpointName, new {id= game.Id}, game.ToGameDetailsDto());
         });
         // PUT /games
         group.MapPut("/{id}", (int id, UpdateGameDto updatedGame)=>{
@@ -47,7 +46,7 @@ public static class GamesEndpoints
             return Results.NotFound(); 
             }
 
-            games[index] = new GameDto(id, updatedGame.Name, updatedGame.Genre, updatedGame.Price, updatedGame.ReleaseDate);
+            games[index] = new GameSummaryDto(id, updatedGame.Name, updatedGame.Genre, updatedGame.Price, updatedGame.ReleaseDate);
             return Results.NoContent();
         });
 

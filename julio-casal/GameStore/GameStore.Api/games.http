@@ -5,14 +5,15 @@ GET http://localhost:5185
 GET http://localhost:5185/games
 
 ###
-GET http://localhost:5185/games/5
+GET http://localhost:5185/games/8
 
 ###
 POST http://localhost:5185/games
 Content-Type: application/json
 
 {
-    "genre": "Kids and Family",
+    "name": "The Witcher 8",
+    "genreId": "2",
     "price": 19.99,
     "releaseDate": "2011-11-18"
 }
