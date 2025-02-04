@@ -12,7 +12,7 @@ POST http://localhost:5185/games
 Content-Type: application/json
 
 {
-    "name": "The Witcher 8",
+    "name": "The Witcher 1",
     "genreId": "2",
     "price": 19.99,
     "releaseDate": "2011-11-18"
