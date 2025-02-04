@@ -5,7 +5,7 @@ GET http://localhost:5185
 GET http://localhost:5185/games
 
 ###
-GET http://localhost:5185/games/8
+GET http://localhost:5185/games/2
 
 ###
 POST http://localhost:5185/games
@@ -19,15 +19,15 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:5185/games/7
+PUT http://localhost:5185/games/2
 Content-Type: application/json
 
 {
    "name": "The Witcher 3",
-    "genre": "RPG",
-    "price": 139.99,
+    "genreId": 2,
+    "price": 50.99,
     "releaseDate": "2015-05-19"
 }
 
 ###
-DELETE  http://localhost:5185/games/3
+DELETE  http://localhost:5185/games/8

@@ -3,6 +3,7 @@ using GameStore.Api.Data;
 using GameStore.Api.Dtos;
 using GameStore.Api.Entities;
 using GameStore.Api.Mapping;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.Api.Endpoints;
 
@@ -23,7 +24,11 @@ public static class GamesEndpoints
         var group = app.MapGroup("games")
                         .WithParameterValidation();
         // GET /games
-        group.MapGet("", ()=> games);
+        group.MapGet("", (GameStoreContext dbContext)=> 
+            dbContext.Games
+                     .Include(game => game.Genre)
+                     .Select(game => game.ToGameSummaryDto())
+                     .AsNoTracking());
 
         // GET by ID /games/id
         group.MapGet("/{id}",(int id,  GameStoreContext dbContext) =>{ 
@@ -39,20 +44,25 @@ public static class GamesEndpoints
             return Results.CreatedAtRoute(GetGameEndpointName, new {id= game.Id}, game.ToGameDetailsDto());
         });
         // PUT /games
-        group.MapPut("/{id}", (int id, UpdateGameDto updatedGame)=>{
-            var index = games.FindIndex(game=> game.Id == id);
+        group.MapPut("/{id}", (int id, UpdateGameDto updatedGame, GameStoreContext dbContext)=>{
 
-            if(index ==-1){
-            return Results.NotFound(); 
+            var existingGame = dbContext.Games.Find(id);
+
+            if (existingGame is null){
+                return Results.NotFound();                 
             }
-
-            games[index] = new GameSummaryDto(id, updatedGame.Name, updatedGame.Genre, updatedGame.Price, updatedGame.ReleaseDate);
+            
+            dbContext.Entry(existingGame)
+                     .CurrentValues
+                     .SetValues(updatedGame.ToEntity(id));
+            dbContext.SaveChanges();
             return Results.NoContent();
         });
 
         // DELETE /games/1
-        group.MapDelete("/{id}", (int id)=>{
-            games.RemoveAll(game => game.Id == id);
+        group.MapDelete("/{id}", (int id, GameStoreContext dbContext)=>{
+            dbContext.Games.Where(game => game.Id ==id)
+                            .ExecuteDelete();
             return Results.NoContent();
         });
 
